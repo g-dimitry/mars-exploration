@@ -44,9 +44,22 @@ public:
     this->data = new Type[0];
     this->count = 0;
   }
+  Array<Type>(const Array<Type> &obj)
+  {
+    this->count = obj.count;
+    this->data = new Type[count];
+    for (int i = 0; i < count; i++)
+    {
+      this->data[i] = obj.data[i];
+    }
+  }
   Array<Type>(Type *data, int count)
   {
-    this->data = data;
+    this->data = new Type[count];
+    for (int i = 0; i < count; i++)
+    {
+      this->data[i] = data[i];
+    }
     this->count = count;
   }
   Type *getData()
@@ -88,7 +101,7 @@ public:
   {
     if (count <= 0)
     {
-      return;
+      return this;
     }
     int newCount = count - 1;
     Type *outArr = new Type[newCount];
@@ -162,6 +175,23 @@ public:
     }
     return value;
   }
+  Array<Type> concat(Array<Type> array)
+  {
+    Array<Type> temp = this->clone();
+    array.forEach([=](Type element) {
+      temp.push(element);
+    });
+    return temp;
+  }
+  Array<Type> reverse()
+  {
+    Array<Type> temp = this->clone();
+    for (int i = 0; i < temp.getCount() / 2; i++)
+    {
+      temp.swap(i, temp.getCount() - i - 1);
+    }
+    return temp;
+  }
 };
 
 class Test
@@ -176,19 +206,25 @@ public:
 
 int main()
 {
-  Array<Test *> arr;
+  Array<int> arr;
   for (int i = 10; i >= 0; i--)
   {
-    arr.push(new Test(i));
+    arr.push(i);
   }
-  arr.sort([](Test *a, Test *b) {
-    if (a->value > b->value)
-      return 1;
-    if (a->value < b->value)
-      return -1;
-    return 0;
+  // arr.sort([](int a, int b) {
+  //   if (a > b)
+  //     return 1;
+  //   if (a < b)
+  //     return -1;
+  //   return 0;
+  // });
+  Array<int> arr2 = arr.clone();
+  arr2.forEach([](int t) {
+    cout << t << endl;
   });
-  arr.forEach([](Test *t) {
-    cout << t->value << endl;
-  });
+  // for (int i = 0; i < arr.getCount(); i++)
+  // {
+  //   cout << arr.getData() << endl;
+  // }
+  cout << "DDDDD" << endl;
 }
