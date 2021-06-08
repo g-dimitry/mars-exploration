@@ -1,7 +1,10 @@
+#include <fstream>
 #include <functional>
 #include <iostream>
+#include <string>
 using namespace std;
 
+// Array Class
 template <typename Type>
 class Array {
  private:
@@ -129,7 +132,7 @@ class Array {
   template <typename ReduceType>
   ReduceType reduce(
       function<ReduceType(ReduceType accumulator, Type currentValue,
-                          int currentIndex = NULL, Type *srcArray) = NULL>
+                          int currentIndex, Type *srcArray)>
           f,
       ReduceType initValue) {
     ReduceType value = initValue;
@@ -152,21 +155,25 @@ class Array {
   }
 };
 
+// Config Class
 class Config {
  public:
   static const int MARS_DAY_HOURS = 25;
   static const int MISSION_FORMULATION_WEIGHT = 25;
   static const int MISSION_DURATION_WEIGHT = 25;
   static const int MISSION_DISTANCE_WEIGHT = 25;
+  // static const string INPUT_FILE_NAME = "input.txt";
 };
 
-enum MissionType {
+// ENUMS
+
+enum class MissionType {
   EMERGENCY,
   POLAR,
   MOUNTAINOUS,
 };
 
-enum MissionStatus {
+enum class MissionStatus {
   IDLE,
   IN_PROGRESS,
   COMPLETED,
@@ -174,6 +181,51 @@ enum MissionStatus {
   FAILED,
   COUNT,
 };
+
+enum class RoverTypes {
+  EMERGENCY,
+  POLAR,
+  MOUNTAINOUS,
+  COUNT,
+};
+
+enum class RoverStatus {
+  IDLE,
+  IN_CHECKUP,
+  IN_MAINTENANCE,
+  HALF_CAPACITY,
+  ON_MISSION,
+};
+
+class MarsStation {
+ private:
+  int currentDay;
+  RoverStation roverStation;
+  HeadQuarters headQuarters;
+
+ public:
+  RoverStation *getRoverStation();
+  HeadQuarters *getHeadQuarters();
+  void preloadEvents();
+  bool processDay();
+};
+
+class RoverStation {
+ private:
+  MarsStation *parentStation;
+  Array<Rover *> rovers;
+
+ public:
+  RoverStation(MarsStation *parentStation);
+  Array<Rover *> getRovers();
+  Array<Rover *> *getRoversByType(RoverTypes roverType);
+  Array<Rover *> *getRoversByStatus(RoverStatus roverStatus);
+  Rover *getRoverById(int roverId);
+  Array<Rover *> *getRoversByTypeAndStatus(RoverTypes roverType,
+                                           RoverStatus roverStatus);
+};
+
+class Rover;
 
 class Mission {
  private:
@@ -230,21 +282,6 @@ class Mission {
   Rover *getRover() { return this->rover; }
 };
 
-enum RoverTypes {
-  EMERGENCY,
-  POLAR,
-  MOUNTAINOUS,
-  COUNT,
-};
-
-enum RoverStatus {
-  IDLE,
-  IN_CHECKUP,
-  IN_MAINTENANCE,
-  HALF_CAPACITY,
-  ON_MISSION,
-};
-
 class Rover {
  private:
   RoverTypes roverType;
@@ -276,9 +313,7 @@ class Rover {
   Mission *getCurrentMission() { return this->currentMission; }
   RoverTypes getRoverType() { return this->roverType; }
   RoverStatus getRoverStatus() { return this->roverStatus; }
-  void reportToStation() {
-
-  }
+  void reportToStation() {}
 };
 int Rover::roverCount = 0;
 
@@ -410,7 +445,7 @@ class CancelMissionEvent : public Event {
 };
 
 class PromoteMissionEvent : public Event {
-  private:
+ private:
   int missionId;
 
  public:
@@ -477,6 +512,18 @@ class MarsStation {
  public:
   RoverStation *getRoverStation() { return &this->roverStation; }
   HeadQuarters *getHeadQuarters() { return &this->headQuarters; }
+  void preloadEvents() {
+    string line;
+    ifstream myfile("input.txt");
+    if (myfile.is_open()) {
+      while (getline(myfile, line)) {
+        cout << line << '\n';
+      }
+      myfile.close();
+    } else {
+      cout << "Unable to open file";
+    }
+  }
   bool processDay() {
     this->currentDay++;
     return true;
@@ -485,9 +532,10 @@ class MarsStation {
 
 int main() {
   MarsStation marsStation;
-  while (1) {
-    if (!marsStation.processDay()) {
-      break;
-    }
-  }
+  marsStation.preloadEvents();
+  // while (1) {
+  //   if (!marsStation.processDay()) {
+  //     break;
+  //   }
+  // }
 }
